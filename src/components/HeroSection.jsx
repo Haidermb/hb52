@@ -1,7 +1,126 @@
-import React, { useState } from 'react';
-import { Terminal, Sparkles, ArrowRight, Mail, Cpu, Server, Database, CheckCircle2, Copy, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Terminal, Sparkles, ArrowRight, Mail, Cpu, Server, Database, CheckCircle2, Copy, Check, RotateCcw } from 'lucide-react';
 import { GithubIcon, LinkedinIcon } from './Icons';
 import { resumeData } from '../data/resumeData';
+
+const SmoothBigQuoteCard = () => {
+  const fullText = "AI systems don't create value because they're intelligent. They create value when they're reliable, scalable, and solve real business problems.";
+  const [charIndex, setCharIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [replayKey, setReplayKey] = useState(0);
+
+  useEffect(() => {
+    let current = 0;
+    setCharIndex(0);
+    setIsTyping(true);
+
+    let timeoutId;
+
+    const typeNext = () => {
+      if (current < fullText.length) {
+        current++;
+        setCharIndex(current);
+
+        const char = fullText[current - 1];
+        let delay = 35;
+
+        if (char === '.') delay = 420;
+        else if (char === ',') delay = 300;
+        else if (char === ' ') delay = 50;
+
+        timeoutId = setTimeout(typeNext, delay);
+      } else {
+        setIsTyping(false);
+      }
+    };
+
+    timeoutId = setTimeout(typeNext, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [replayKey]);
+
+  const handleCopyQuote = () => {
+    navigator.clipboard.writeText(fullText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleReplay = () => {
+    setReplayKey((prev) => prev + 1);
+  };
+
+  const renderStyledText = () => {
+    const parts = [
+      { text: "AI systems don't create value because they're intelligent. They create value when they're ", style: "text-slate-100" },
+      { text: "reliable", style: "text-emerald-400 font-extrabold underline decoration-emerald-500/60 underline-offset-8 transition-colors duration-300" },
+      { text: ", ", style: "text-slate-100" },
+      { text: "scalable", style: "text-cyan-400 font-extrabold underline decoration-cyan-500/60 underline-offset-8 transition-colors duration-300" },
+      { text: ", and ", style: "text-slate-100" },
+      { text: "solve real business problems.", style: "text-amber-300 font-extrabold underline decoration-amber-500/60 underline-offset-8 transition-colors duration-300" }
+    ];
+
+    let remaining = charIndex;
+    return (
+      <span>
+        {parts.map((part, pIdx) => {
+          if (remaining <= 0) return null;
+          const chunk = part.text.slice(0, remaining);
+          remaining -= part.text.length;
+          return (
+            <span key={pIdx} className={part.style}>
+              {chunk}
+            </span>
+          );
+        })}
+      </span>
+    );
+  };
+
+  return (
+    <div className="glass-panel-glow rounded-3xl p-6 sm:p-8 border border-emerald-500/35 relative overflow-hidden shadow-2xl transition-all duration-500 hover:border-emerald-500/60 bg-slate-900/85 space-y-6 group">
+      
+      {/* Top Window Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
+          <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+          <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+        </div>
+
+        {/* Action Controls: Replay & Copy */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleReplay}
+            className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition-all duration-200 border border-slate-800 active:scale-95"
+            title="Replay Smooth Typing"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleCopyQuote}
+            className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition-all duration-200 border border-slate-800 active:scale-95"
+            title="Copy Quote"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+          </button>
+        </div>
+
+      </div>
+
+      {/* Quote Body with Big, Bold Typography & Smooth Typing */}
+      <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white leading-relaxed sm:leading-snug tracking-tight min-h-[12rem] flex items-center">
+        <div>
+          <span className="text-emerald-500 font-extrabold text-2xl sm:text-3xl lg:text-4xl mr-1.5 font-mono">“</span>
+          {renderStyledText()}
+          <span className={`inline-block w-3 h-7 sm:h-8 ml-1.5 bg-emerald-400 align-middle transition-opacity duration-200 ${isTyping ? 'animate-ping' : 'animate-pulse'}`}></span>
+          <span className="text-emerald-500 font-extrabold text-2xl sm:text-3xl lg:text-4xl ml-1.5 font-mono">”</span>
+        </div>
+      </div>
+
+    </div>
+  );
+};
 
 export const HeroSection = ({ onOpenAiModal }) => {
   const [copied, setCopied] = useState(false);
@@ -22,39 +141,23 @@ export const HeroSection = ({ onOpenAiModal }) => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Top Status Pill */}
-        <div className="flex justify-center md:justify-start mb-6">
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/80 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-mono shadow-inner shadow-emerald-500/10">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span>{resumeData.personal.status}</span>
-          </div>
-        </div>
-
         {/* Hero Title and Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
-          {/* Main Copy */}
-          <div className="lg:col-span-7 space-y-6 text-center md:text-left">
+          {/* Main Copy (Left Column) */}
+          <div className="lg:col-span-6 space-y-6 text-center md:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Building Production <br />
-              <span className="text-gradient-emerald">Generative AI</span> & <br />
-              <span className="text-gradient-cyan">Microservices Architecture</span>
+              Production <span className="text-gradient-emerald">RAG, Agentic AI</span> & <br />
+              <span className="text-gradient-cyan">Voice AI Systems</span>
             </h1>
-
-            <p className="text-slate-300 text-base sm:text-lg max-w-2xl leading-relaxed font-normal">
-              {resumeData.personal.summary}
-            </p>
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2">
               <a
-                href="#architecture"
+                href="#projects"
                 className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-base transition-all shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5"
               >
-                <span>Explore Architecture</span>
+                <span>Explore Projects</span>
                 <ArrowRight className="w-5 h-5" />
               </a>
 
@@ -109,33 +212,9 @@ export const HeroSection = ({ onOpenAiModal }) => {
             </div>
           </div>
 
-          {/* Terminal Code Mockup */}
-          <div className="lg:col-span-5">
-            <div className="glass-panel-glow rounded-2xl p-5 border border-emerald-500/30 font-mono text-xs sm:text-sm text-slate-300 shadow-2xl relative">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-                </div>
-                <div className="text-slate-400 text-xs">monorepo/turborepo-fastify-ai</div>
-              </div>
-
-              <div className="space-y-2 text-slate-300">
-                <p className="text-slate-500">// Haider's Monorepo Stack Initialization</p>
-                <p><span className="text-emerald-400">$</span> agy start --services=<span className="text-cyan-300">gateway,auth,bot,knowledge,hitl,audio</span></p>
-                <p className="text-emerald-400/90">✔ [Gateway] Fastify API Gateway running on :8000</p>
-                <p className="text-emerald-400/90">✔ [Knowledge] ChromaDB (3072-dim) + Postgres CTE Graph ready</p>
-                <p className="text-emerald-400/90">✔ [HITL] WebSocket & Redis Pub/Sub bridge active</p>
-                <p className="text-emerald-400/90">✔ [Bot] OpenRouter integrated (300+ LLMs dynamic switching)</p>
-                <p className="text-emerald-400/90">✔ [Audio] ElevenLabs & Azure Speech real-time voice ready</p>
-                
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Status: <span className="text-emerald-400 font-bold">PRODUCTION HIGH-THROUGHPUT</span></span>
-                  <span className="text-cyan-400 font-mono">LATENCY: -66%</span>
-                </div>
-              </div>
-            </div>
+          {/* Right Column: Prominent Smooth Typewriter Quote Card with Both Badges */}
+          <div className="lg:col-span-6">
+            <SmoothBigQuoteCard />
           </div>
 
         </div>

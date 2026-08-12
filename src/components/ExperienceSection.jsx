@@ -72,9 +72,15 @@ export const ExperienceSection = () => {
                         <div className="p-1 rounded bg-emerald-500/10 text-emerald-400 mt-0.5 shrink-0">
                           <CheckCircle2 className="w-4 h-4" />
                         </div>
-                        <div>
-                          <h5 className="font-semibold text-white text-sm mb-1">{item.title}</h5>
+                        <div className="space-y-1.5 flex-1">
+                          <h5 className="font-semibold text-white text-sm">{item.title}</h5>
                           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">{item.text}</p>
+                          {item.techStack && (
+                            <div className="pt-1 text-[11px] font-mono text-emerald-400 bg-emerald-500/5 px-2.5 py-1 rounded border border-emerald-500/20 inline-block">
+                              <span className="text-slate-400 font-bold mr-1">Tech Stack:</span>
+                              <span>{item.techStack}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

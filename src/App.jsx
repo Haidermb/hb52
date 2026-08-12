@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
-import { ArchitectureViewer } from './components/ArchitectureViewer';
 import { ExperienceSection } from './components/ExperienceSection';
 import { ProjectsSection } from './components/ProjectsSection';
-import { SkillsSection } from './components/SkillsSection';
 import { EducationSection } from './components/EducationSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
@@ -22,10 +20,8 @@ export default function App() {
       {/* Main Page Content */}
       <main>
         <HeroSection onOpenAiModal={() => setAiModalOpen(true)} />
-        <ArchitectureViewer />
-        <ExperienceSection />
         <ProjectsSection />
-        <SkillsSection />
+        <ExperienceSection />
         <EducationSection />
         <ContactSection />
       </main>

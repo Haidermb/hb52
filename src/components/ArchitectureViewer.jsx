@@ -52,13 +52,13 @@ export const ArchitectureViewer = () => {
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Monorepo Architecture</span>
+            <span>AI Platform Architecture</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-            6 Fastify Microservices & Graph RAG Engine
+            Enterprise Generative AI & System Architecture
           </h2>
           <p className="text-slate-400 text-base">
-            Haider's high-throughput monorepo architecture built with Node.js/Fastify, Next.js 15, PostgreSQL Knowledge Graphs, ChromaDB, and Redis Pub/Sub.
+            Production-grade Generative AI ecosystem featuring RAG, Voice AI microservices, agentic HITL workflows, and Stripe payment automation.
           </p>
         </div>
 
@@ -118,16 +118,16 @@ export const ArchitectureViewer = () => {
             {/* Architecture Highlights Bar */}
             <div className="p-4 rounded-xl glass-panel border border-slate-800 mt-4 flex flex-wrap gap-4 text-xs font-mono text-slate-300">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Turborepo Monorepo
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Enterprise RAG (LlamaParser + FAISS + Weaviate)
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Docker Compose Blue/Green
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Docker & Containerized Microservices
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> BullMQ Task Queues
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Voice AI Telephony (Plivo + Azure Speech + Twilio)
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Stripe Credit Ledger
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Stripe Subscription & Pay-as-you-go Billing
               </span>
             </div>
 
