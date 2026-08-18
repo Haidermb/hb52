@@ -1,13 +1,9 @@
-# Environment variables
+# Environment variables (.env stays private)
 .env
 .env.local
 .env.*.local
 .env.development
 .env.production
-
-# Data Files
-src/data/resumeData.js
-!src/data/resumeData.example.js
 
 # Logs
 logs
