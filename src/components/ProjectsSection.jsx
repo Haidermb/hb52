@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Layers, ExternalLink, Sparkles, X, CheckCircle2, ArrowRight, Search, Filter, Cpu, Zap, ChevronLeft, ChevronRight, Grid, SlidersHorizontal, Pause, Play } from 'lucide-react';
+import { Layers, ExternalLink, Sparkles, X, CheckCircle2, ArrowRight, Search, Filter, Cpu, Zap, ChevronLeft, ChevronRight, Grid, SlidersHorizontal } from 'lucide-react';
 import { resumeData } from '../data/resumeData';
 
 export const ProjectsSection = () => {
@@ -10,6 +10,10 @@ export const ProjectsSection = () => {
   const [viewMode, setViewMode] = useState('slider'); // 'slider' | 'grid'
   const [isPaused, setIsPaused] = useState(false);
   const scrollRef = useRef(null);
+
+  // Smooth Conveyor Belt Speed Animation Refs (Smooth Deceleration & Acceleration)
+  const speedRef = useRef(0.85);
+  const targetSpeedRef = useRef(0.85);
 
   const categories = useMemo(() => {
     return ['All', ...Array.from(new Set(resumeData.projects.map(p => p.category)))];
@@ -38,38 +42,55 @@ export const ProjectsSection = () => {
     });
   }, [activeCategory, searchQuery, onlyFeatured]);
 
-  // Smooth Navigation Controls
+  // Duplicated list for seamless infinite conveyor belt loop
+  const sliderProjects = useMemo(() => {
+    if (filteredProjects.length > 1) {
+      return [...filteredProjects, ...filteredProjects];
+    }
+    return filteredProjects;
+  }, [filteredProjects]);
+
+  // Manual Arrow Navigation Controls
   const scrollLeft = () => {
     if (scrollRef.current) {
-      const container = scrollRef.current;
-      if (container.scrollLeft <= 10) {
-        container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
-      } else {
-        container.scrollBy({ left: -380, behavior: 'smooth' });
-      }
+      scrollRef.current.scrollBy({ left: -380, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (scrollRef.current) {
-      const container = scrollRef.current;
-      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 20) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        container.scrollBy({ left: 380, behavior: 'smooth' });
-      }
+      scrollRef.current.scrollBy({ left: 380, behavior: 'smooth' });
     }
   };
 
-  // Smooth Auto-glide timer with hover pause
+  // Continuous 60fps Conveyor Belt Glider with Smooth Deceleration on Hover
   useEffect(() => {
-    if (viewMode !== 'slider' || isPaused || filteredProjects.length <= 1) return;
+    if (viewMode !== 'slider' || filteredProjects.length <= 1) return;
 
-    const timer = setInterval(() => {
-      scrollRight();
-    }, 3200);
+    targetSpeedRef.current = isPaused ? 0 : 0.85;
 
-    return () => clearInterval(timer);
+    let animId;
+    const animate = () => {
+      if (scrollRef.current) {
+        // Linear Interpolation (lerp) for silky smooth deceleration and acceleration
+        speedRef.current += (targetSpeedRef.current - speedRef.current) * 0.08;
+
+        if (speedRef.current > 0.005) {
+          const container = scrollRef.current;
+          container.scrollLeft += speedRef.current;
+
+          // Seamless infinite wrap-around loop at mid-point
+          const halfWidth = container.scrollWidth / 2;
+          if (halfWidth > 0 && container.scrollLeft >= halfWidth) {
+            container.scrollLeft -= halfWidth;
+          }
+        }
+      }
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
   }, [viewMode, isPaused, filteredProjects.length]);
 
   // Close modal on Escape key press
@@ -118,145 +139,110 @@ export const ProjectsSection = () => {
             <div className="text-xs text-slate-400 font-mono mt-0.5">Manual Sales Effort</div>
           </div>
           <div className="text-center last:border-r-0">
-            <div className="text-2xl sm:text-3xl font-extrabold text-purple-400 font-mono">3x Speedup</div>
-            <div className="text-xs text-slate-400 font-mono mt-0.5">Microservices API Speed</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-purple-400 font-mono">2,000+ Calls</div>
+            <div className="text-xs text-slate-400 font-mono mt-0.5">Autonomous Voice AI</div>
           </div>
         </div>
 
-        {/* Filter Controls & Slider Header */}
-        <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-slate-800 mb-8 space-y-4 shadow-xl">
+        {/* Filter Controls & View Switcher */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Search Input Bar */}
+          <div className="relative w-full md:w-80">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search projects by tech, title, or RAG..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-panel border border-slate-800 text-slate-200 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-all font-sans"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Category Tabs & View Mode Controls */}
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
             
-            {/* Live Search Input */}
-            <div className="relative w-full md:w-80">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search by project, tech, or feature..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+            {/* View Mode Switcher */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800">
+              <button
+                onClick={() => setViewMode('slider')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                  viewMode === 'slider' ? 'bg-emerald-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'
+                }`}
+                title="Conveyor Slider View"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Slider</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                  viewMode === 'grid' ? 'bg-emerald-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'
+                }`}
+                title="Grid View"
+              >
+                <Grid className="w-3.5 h-3.5" />
+                <span>Grid</span>
+              </button>
             </div>
 
-            {/* Slider Navigation & Mode Controls */}
-            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-              
-              {/* Featured Toggle */}
-              <button
-                onClick={() => setOnlyFeatured(!onlyFeatured)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-semibold transition-all border ${
-                  onlyFeatured
-                    ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow'
-                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Featured</span>
-              </button>
-
-              {/* View Mode Switcher */}
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800">
+            {/* Smooth Arrow Controls */}
+            {viewMode === 'slider' && filteredProjects.length > 0 && (
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
                 <button
-                  onClick={() => setViewMode('slider')}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    viewMode === 'slider' ? 'bg-emerald-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'
-                  }`}
-                  title="Smooth Carousel View"
+                  onClick={scrollLeft}
+                  className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40 transition-all active:scale-95 shadow-md"
+                  title="Scroll Left"
                 >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span>Slider</span>
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setViewMode('grid')}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    viewMode === 'grid' ? 'bg-emerald-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'
-                  }`}
-                  title="Grid View"
+                  onClick={scrollRight}
+                  className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40 transition-all active:scale-95 shadow-md"
+                  title="Scroll Right"
                 >
-                  <Grid className="w-3.5 h-3.5" />
-                  <span>Grid</span>
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Auto-Play Hover Status Pill */}
-              {viewMode === 'slider' && filteredProjects.length > 1 && (
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono">
-                  {isPaused ? (
-                    <>
-                      <Pause className="w-3 h-3 text-amber-400" />
-                      <span className="text-amber-300">PAUSED ON HOVER</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                      <span className="text-emerald-400">SMOOTH GLIDE (3.2s)</span>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Smooth Arrow Controls */}
-              {viewMode === 'slider' && filteredProjects.length > 0 && (
-                <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-                  <button
-                    onClick={scrollLeft}
-                    className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40 transition-all active:scale-95 shadow-md"
-                    title="Scroll Left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={scrollRight}
-                    className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40 transition-all active:scale-95 shadow-md"
-                    title="Scroll Right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-            </div>
+            )}
 
           </div>
+        </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-2 border-t border-slate-800/80">
-            {categories.map((cat) => {
-              const count = getCategoryCount(cat);
-              const isActive = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold font-mono transition-all flex items-center gap-2 whitespace-nowrap ${
-                    isActive
-                      ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20'
-                      : 'bg-slate-900/90 text-slate-300 hover:text-white border border-slate-800/80 hover:border-slate-700'
+        {/* Category Pills Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat;
+            const count = getCategoryCount(cat);
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-lg shadow-emerald-500/20'
+                    : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+                }`}
+              >
+                <span>{cat}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    isActive ? 'bg-slate-950/30 text-slate-950' : 'bg-slate-800 text-slate-400'
                   }`}
                 >
-                  <span>{cat}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                      isActive ? 'bg-slate-950/30 text-slate-950' : 'bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Empty Search Result Fallback */}
@@ -282,24 +268,21 @@ export const ProjectsSection = () => {
           </div>
         )}
 
-        {/* MODE 1: SILKY SMOOTH DRAG & GLIDE CAROUSEL SLIDER */}
+        {/* MODE 1: INFINITE CONVEYOR BELT SLIDER WITH SMOOTH DECELERATION & HIGHLIGHT ON HOVER */}
         {viewMode === 'slider' && filteredProjects.length > 0 && (
-          <div
-            className="relative py-2"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-          >
-            {/* Scrollable Container with Smooth Native Drag & Snap */}
+          <div className="relative py-4">
             <div
               ref={scrollRef}
-              className="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth snap-x snap-mandatory py-4 px-1"
+              className="flex gap-6 overflow-x-auto scrollbar-none py-6 px-3 select-none"
             >
-              {filteredProjects.map((project) => (
+              {sliderProjects.map((project, idx) => (
                 <div
-                  key={project.id}
-                  className="w-[310px] sm:w-[350px] md:w-[380px] shrink-0 snap-start"
+                  key={`${project.id}-${idx}`}
+                  className="w-[310px] sm:w-[350px] md:w-[380px] shrink-0 transform transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.03] hover:z-20 relative"
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
                 >
-                  <div className="glass-panel-glow rounded-2xl p-6 border border-slate-800 hover:border-emerald-500/40 transition-all flex flex-col justify-between group hover:shadow-2xl hover:shadow-emerald-500/10 h-full min-h-[420px]">
+                  <div className="glass-panel-glow rounded-2xl p-6 border border-slate-800 hover:border-emerald-500 transition-all duration-300 flex flex-col justify-between group hover:shadow-2xl hover:shadow-emerald-500/25 h-full min-h-[420px] bg-slate-900/90">
                     
                     <div className="space-y-4">
                       
@@ -326,7 +309,7 @@ export const ProjectsSection = () => {
                       </p>
 
                       {/* Key Impact Stats Badges */}
-                      <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-800/80 bg-slate-900/40 rounded-xl px-2">
+                      <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-800/80 bg-slate-900/60 rounded-xl px-2">
                         {project.impactStats.map((stat, sIdx) => (
                           <div key={sIdx} className="text-center">
                             <div className="text-emerald-400 font-mono font-bold text-xs sm:text-sm">{stat.value}</div>
@@ -345,7 +328,7 @@ export const ProjectsSection = () => {
                         ))}
                       </div>
 
-                      {/* Explicit ATS Tech Stack Tag */}
+                      {/* Tech Stack Tag */}
                       {project.techStackLine && (
                         <div className="pt-1">
                           <div className="text-[10px] font-mono text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/20 line-clamp-1">
